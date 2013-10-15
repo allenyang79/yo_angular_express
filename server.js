@@ -4,7 +4,9 @@
 
 var express = require('express')
     , http = require('http')
-    , path = require('path');
+    , path = require('path')
+		, moment=require('moment')
+		, stringify = require('stringify')
 
 var app = express();
 
@@ -26,8 +28,30 @@ if ('production' == app.get('env')) {
     app.use(express.errorHandler());
 }
 
-app.get('/hello', function(req, res){
-  res.send('Hello World foo bar');
+app.get('/login',function(req,res){
+	//res.send("login");
+	res.send(moment().format());
+});
+
+
+app.get('/statistics',function(req,res){
+	var today=(new Date()).getTime()*0.001;
+	today=today-today%86400
+	var response=[]
+	for(var i=0;i<31;i++){
+		var time=today+i*86400;
+		var row={}
+		row.time=moment.unix(today+i*86400).format('YYYY/MM/DD')
+
+		row.cost=Math.floor(Math.random()*10000)
+		row.impressions=Math.floor(Math.random()*10000)
+		row.clicks=Math.floor(Math.random()*10000)
+		row.actions=Math.floor(Math.random()*10000)
+		row.view=Math.floor(Math.random()*10000)
+
+		response.push(row)
+	}
+	res.send(JSON.stringify(response))
 });
 
 http.createServer(app).listen(app.get('port'), function () {
