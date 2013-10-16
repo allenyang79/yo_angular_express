@@ -4,7 +4,8 @@
   "dependencies": {
     "express": "~3.4.0",
     "datejs": "0.0.2",
-    "stringify": "~1.0.0"
+    "stringify": "~1.0.0",
+    "csv": "~0.3.6"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -43,7 +44,8 @@
     "karma-phantomjs-launcher": "~0.1.0",
     "karma": "~0.10.2",
     "karma-ng-html2js-preprocessor": "~0.1.0",
-    "grunt-express-server": "~0.4.4"
+    "grunt-express-server": "~0.4.4",
+    "cli-color": "~0.2.3"
   },
   "engines": {
     "node": ">=0.8.0"

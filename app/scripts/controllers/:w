@@ -1,0 +1,176 @@
+'use strict';
+################################################
+# appier.edash
+###############################################
+edash=angular.module('appier.edash',['ngResource'])
+edash.factory 'statistics',['$resource',($resource)->
+	console.log 'edash>statistics init'
+	return $resource '/api/statistics/:io_id/:campaign_id?unit=:unit&start=:start&stop=:stop',{
+			io_id:"@io_id"
+			campaign_id:"@campaign_id"
+			unit:"@"
+			start:"@start"
+			stop:"@stop"
+		},{
+			getList:{
+				method:'GET'
+				params:{
+					campaign_id:0
+				}
+			},
+			###	
+			total:{method:"GET",params:{op:'total'},responseType:"text"}
+			addTotal:{method:"PUT",params:{op:'total'}}
+			all:{method:"GET",params:{op:'phone'},isArray:true}
+			#,headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'}
+			add:{method:"POST",params:{op:'phone'}}
+			del:{method:"DELETE",params:{op:'phone'}}
+			###
+		}
+]
+
+
+#########################################
+# directive: Appier Statistics Chart
+# attr:
+# 	io_id
+# 	campaign_id
+# 	set_id
+#		start
+#		stop
+##########################################
+edash.directive 'edashStatisticsChart',['statistics',(statistics)->
+	return {
+		restrict:'EA'
+		template:"""
+			<div>
+				<h5>edash statistics chart</h5>
+				<div class="chart" style="width:{{width}}px;height:{{height}}px"></div>'
+			</div>
+		""",
+		scope:
+			'chartSource':'=',
+			'onRenderStart':'&'
+			'onRenderComplete':'&'
+		link:(scope,element,attr)->
+			console.log '[edash]edash-statistics-chart'
+			console.dir statistics
+			console.dir scope
+
+			#chart setting
+			scope.width=600
+			scope.height=300
+			scope.chart=null
+
+			plotOptions=
+				xaxis:
+					tickLength:0
+				legend:
+					noColumns:true
+				grid:
+					hoverable:true
+					borderWidth: 3
+					backgroundColor:
+						colors: ["#ffffff", "#EDF5FF"]
+					#labelMargin: 10,
+					#backgroundColor: '#e2e6e9',
+					#color: '#ffffff',
+					#borderColor: null
+				crosshair:
+					mode:'x'
+					color:'#00ff00'
+
+			self.onChartSourceChange=(newVal,oldVal)->
+				console.log "onChartDataChange"
+				if newVal
+					console.dir newVal
+					console.dir oldVal
+					statistics.getList {
+						io_id:newVal.io_id
+						campaign_id:newVal.campaign_id
+						set_id:newVal.set_id
+						start:newVal.start
+						stop:newVal.stop
+						unit:newVal.unit
+					},(response)->
+						console.log '[edash]statistics.getList'
+						self.parseData(response)
+				
+
+
+			#parse ngModel
+			self.parseData=(data)->
+				console.log '[edash]parseData'
+				#console.dir data
+				tmpData=
+					cost:[]
+					impressions:[]
+					clicks:[]
+					actions:[]
+					views:[]
+					ctr:[]
+					cpc:[]
+					cvr:[]
+					cpa:[]
+				
+				_.each data.rows,(row, key, list)->
+					tmpData.cost.push [row.time,row.cost] # moneny
+					tmpData.impressions.push [row.time,row.impressions] # num
+					tmpData.clicks.push [row.time,row.clicks] #num
+					tmpData.views.push [row.time,row.views] #num
+					tmpData.actions.push [row.time,row.actions] #num
+					tmpData.ctr.push [row.time,row.clicks/row.impressions]
+					tmpData.cpc.push [row.time,row.cost/row.clicks]
+					tmpData.cpa.push [row.time,row.cost/row.action]
+					tmpData.cvr.push [row.time,row.actions/row.clicks]
+				
+				self.plotDataSet=[
+						label:'cost'
+						data:tmpData.cost
+						lines:
+							show:true
+							fill:true
+					,
+						label:'impression'
+						data:tmpData.impressions
+					,
+						label:'click'
+						data:tmpData.clicks
+					,
+						label:'view'
+						data:tmpData.views
+					,
+						label:'action'
+						data:tmpData.actions
+				]
+				self.render(self.plotDataSet)
+
+			self.render=(dataSet)->
+				console.log 'render'
+				if !self.chart
+					console.dir $(".chart",element)
+					self.chart=$.plot $('.chart',element),dataSet,plotOptions
+				else
+					self.chart.setData dataSet
+					self.chart.setupGrid()
+					self.chart.chartDraw()
+
+			scope.$watch 'chartSource',self.onChartSourceChange
+	}]
+
+
+@app.controller 'MainCtrl',['$scope','statistics',($scope,statistics)->
+	console.log 'run do MainCtrl'
+	
+	$scope.title="Hello World"
+	$scope.message="ummm......"
+
+	$scope.chartData=
+		io_id:1
+		campaign_id:1
+		set_id:1
+		unit:'day'
+		start:Math.floor((new Date()).getTime()*0.001)
+		stop:Math.floor((new Date()).getTime()*0.001)
+	console.dir $scope.chartData
+]

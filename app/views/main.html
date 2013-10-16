@@ -1,10 +1,6 @@
-<div class="hero-unit">
-  <h1>'Allo, 'Allo!</h1>
-	<h2>bala bala</h2>
-  <p>You now have</p>
-  <ul>
-      <li ng-repeat="thing in awesomeThings">{{thing}}</li>
-  </ul>
-  <p>installed.</p>
-  <h3>Enjoy coding! - Yeoman</h3>
-</div>
+<h5>{{title}}</h5>
+<p>{{message}}</p>
+io_id:<input type="text" ng-model="chartData.io_id"><br/>
+campaign_id:<input type="text" ng-model="chartData.campaign_id"><br/>
+set_id:<input type="text" ng-model="chartData.set_id"><br/>
+<div edash-statistics-chart chart-source="chartData"></div>
